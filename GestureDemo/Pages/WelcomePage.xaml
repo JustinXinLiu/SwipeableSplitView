@@ -1,0 +1,20 @@
+﻿<Page x:Class="GestureDemo.Pages.WelcomePage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="using:GestureDemo.Pages" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <ScrollViewer Style="{StaticResource PageScrollViewerStyle}">
+            <StackPanel>
+                <TextBlock Text="Readme" Style="{StaticResource TitleTextBlockStyle}" />
+                <TextBlock Style="{StaticResource ParagraphTextBlockStyle}">
+                    <Run Text="This SplitView project was initially created based on Koen's awesome UWP templates." />
+                    <LineBreak />
+                    <Run Text="You can download them from " /><Hyperlink NavigateUri="https://visualstudiogallery.msdn.microsoft.com/b3eb9b90-cc39-4b5c-bf94-497cba6e4f6f"><Run Text="here" /></Hyperlink><LineBreak />
+                    <LineBreak />
+                    <Run Text="A few things to note -" /><LineBreak />
+                    <Run Text="• Don't use IsPaneOpen, use IsSwipeablePaneOpen instead." /><LineBreak />
+                    <Run Text="• At the moment the swipe only works when DisplayMode is Overlay. " /><LineBreak />
+                    <Run Text="• The code is not fully tested, let me know if you find any bugs." /><LineBreak />
+                </TextBlock>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>
