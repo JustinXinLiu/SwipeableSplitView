@@ -5,6 +5,11 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Shapes;
+using System.Linq;
+using Windows.UI.Xaml.Controls.Primitives;
+using System.Collections;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace GestureDemo
 {
@@ -20,6 +25,13 @@ namespace GestureDemo
         CompositeTransform _panAreaTransform;
         Storyboard _openSwipeablePane;
         Storyboard _closeSwipeablePane;
+
+        Selector _menuHost;
+        IList<SelectorItem> _menuItems = new List<SelectorItem>();
+        int _toBeSelectedIndex;
+        static double TOTAL_PANNING_DISTANCE = 160d;
+        double _distancePerItem;
+        double _startingDistance;
 
         #endregion
 
@@ -38,6 +50,7 @@ namespace GestureDemo
             {
                 if (_paneRoot != null)
                 {
+                    _paneRoot.Loaded -= OnPaneRootLoaded;
                     _paneRoot.ManipulationStarted -= OnManipulationStarted;
                     _paneRoot.ManipulationDelta -= OnManipulationDelta;
                     _paneRoot.ManipulationCompleted -= OnManipulationCompleted;
@@ -47,6 +60,7 @@ namespace GestureDemo
 
                 if (_paneRoot != null)
                 {
+                    _paneRoot.Loaded += OnPaneRootLoaded;
                     _paneRoot.ManipulationStarted += OnManipulationStarted;
                     _paneRoot.ManipulationDelta += OnManipulationDelta;
                     _paneRoot.ManipulationCompleted += OnManipulationCompleted;
@@ -191,6 +205,21 @@ namespace GestureDemo
         public static readonly DependencyProperty PanAreaThresholdProperty =
             DependencyProperty.Register("PanAreaThreshold", typeof(double), typeof(SwipeableSplitView), new PropertyMetadata(36d));
 
+
+        /// <summary>
+        /// enabling this will allow users to select a menu item by panning up/down on the bottom area of the left pane,
+        /// this could be particularly helpful when holding large phones since users don't need to stretch their fingers to
+        /// reach the top part of the screen to select a different menu item.
+        /// </summary>
+        public bool IsPanSelectorEnabled
+        {
+            get { return (bool)GetValue(IsPanSelectorEnabledProperty); }
+            set { SetValue(IsPanSelectorEnabledProperty, value); }
+        }
+
+        public static readonly DependencyProperty IsPanSelectorEnabledProperty =
+            DependencyProperty.Register("IsPanSelectorEnabled", typeof(bool), typeof(SwipeableSplitView), new PropertyMetadata(true));
+
         #endregion
 
         protected override void OnApplyTemplate()
@@ -283,9 +312,32 @@ namespace GestureDemo
 
             // while we are panning the PanArea on X axis, let's sync the PaneRoot's position X too
             _paneRootTransform.TranslateX = _panAreaTransform.TranslateX = x;
+
+            if (sender == _paneRoot && this.IsPanSelectorEnabled)
+            {
+                // un-highlight everything first
+                foreach (var item in _menuItems)
+                {
+                    VisualStateManager.GoToState(item, "Normal", true);
+                }
+
+                _toBeSelectedIndex = (int)Math.Round((e.Cumulative.Translation.Y + _startingDistance) / _distancePerItem, MidpointRounding.AwayFromZero);
+                if (_toBeSelectedIndex < 0)
+                {
+                    _toBeSelectedIndex = 0;
+                }
+                else if (_toBeSelectedIndex >= _menuItems.Count)
+                {
+                    _toBeSelectedIndex = _menuItems.Count - 1;
+                }
+
+                // highlight the item that's going to be selected
+                var itemContainer = _menuItems[_toBeSelectedIndex];
+                VisualStateManager.GoToState(itemContainer, "PointerOver", true);
+            }
         }
 
-        void OnManipulationCompleted(object sender, ManipulationCompletedRoutedEventArgs e)
+        async void OnManipulationCompleted(object sender, ManipulationCompletedRoutedEventArgs e)
         {
             var x = e.Velocities.Linear.X;
 
@@ -308,6 +360,42 @@ namespace GestureDemo
             else
             {
                 OpenSwipeablePane();
+            }
+
+            if (this.IsPanSelectorEnabled)
+            {
+                if (sender == _paneRoot)
+                {
+                    // if it's a flick, meaning the user wants to cancel the action, so we remove all the highlights
+                    if (e.Velocities.Linear.Y >= 2)
+                    {
+                        foreach (var item in _menuItems)
+                        {
+                            VisualStateManager.GoToState(item, "Normal", true);
+                        }
+
+                        return;
+                    }
+
+                    // un-highlight everything first
+                    foreach (var item in _menuItems)
+                    {
+                        VisualStateManager.GoToState(item, "Unselected", true);
+                    }
+
+                    // highlight the item that's going to be selected
+                    var itemContainer = _menuItems[_toBeSelectedIndex];
+                    VisualStateManager.GoToState(itemContainer, "Selected", true);
+
+                    // do a selection after a short delay to allow visual effect takes place first
+                    await Task.Delay(250);
+                    _menuHost.SelectedIndex = _toBeSelectedIndex;
+                }
+                else
+                {
+                    // recalculate the starting distance
+                    _startingDistance = _distancePerItem * _menuHost.SelectedIndex;
+                }
             }
         }
 
@@ -332,6 +420,36 @@ namespace GestureDemo
         void OnCloseSwipeablePaneCompleted(object sender, object e)
         {
             this.DismissLayer.IsHitTestVisible = false;
+        }
+
+        #endregion
+
+        #region loaded event handlers
+
+        void OnPaneRootLoaded(object sender, RoutedEventArgs e)
+        {
+            // fill the local menu items collection for later use
+            if (this.IsPanSelectorEnabled)
+            {
+                var border = (Border)this.PaneRoot.Children[0];
+                _menuHost = border.Child as Selector;
+
+                if (_menuHost == null)
+                {
+                    throw new ArgumentException("For the bottom panning to work, the Pane's Child needs to be of type Selector!!");
+                }
+
+                foreach (var item in _menuHost.Items)
+                {
+                    var container = (SelectorItem)_menuHost.ContainerFromItem(item);
+                    _menuItems.Add(container);
+                }
+
+                _distancePerItem = TOTAL_PANNING_DISTANCE / _menuItems.Count;
+
+                // calculate the initial starting distance
+                _startingDistance = _distancePerItem * _menuHost.SelectedIndex;
+            }
         }
 
         #endregion

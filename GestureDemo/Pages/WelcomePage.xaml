@@ -4,7 +4,7 @@
         <ScrollViewer Style="{StaticResource PageScrollViewerStyle}">
             <StackPanel>
                 <TextBlock Text="Readme" Style="{StaticResource TitleTextBlockStyle}" />
-                <TextBlock Style="{StaticResource ParagraphTextBlockStyle}">
+                <TextBlock Style="{StaticResource ParagraphTextBlockStyle}" Margin="0,1,0,12">
                     <Run Text="This SplitView project was initially created based on Koen's awesome UWP templates." />
                     <LineBreak />
                     <Run Text="You can download them from " /><Hyperlink NavigateUri="https://visualstudiogallery.msdn.microsoft.com/b3eb9b90-cc39-4b5c-bf94-497cba6e4f6f"><Run Text="here" /></Hyperlink><LineBreak />
@@ -13,6 +13,12 @@
                     <Run Text="• Don't use IsPaneOpen, use IsSwipeablePaneOpen instead." /><LineBreak />
                     <Run Text="• At the moment the swipe only works when DisplayMode is Overlay. " /><LineBreak />
                     <Run Text="• The code is not fully tested, let me know if you find any bugs." /><LineBreak />
+                </TextBlock>
+                <TextBlock Style="{StaticResource ParagraphTextBlockStyle}">
+                	<Run Text="Update" FontSize="21.333" FontWeight="Bold" />
+                	<LineBreak />
+                	<Run Text="• ListView has been replaced with ListBox for better performance and styling." /><LineBreak />
+                	<Run Text="• A new property IsPanSelectorEnabled (well proabably badly named :p) has been added to allow users to select a menu item by panning up/down on the bottom area of the left pane. This is an experimental UX design that I came up with a few months ago and hopefully it could be helpful for users with big phones since they don't need to stretch their fingers to reach the top part of the screen." /><LineBreak />
                 </TextBlock>
             </StackPanel>
         </ScrollViewer>

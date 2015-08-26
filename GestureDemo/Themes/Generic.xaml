@@ -417,7 +417,7 @@
                             <Border Child="{TemplateBinding Content}" />
                             <Rectangle x:Name="LightDismissLayer" Fill="Transparent" Visibility="Collapsed" />
                         </Grid>
-                        <Grid x:Name="PaneRoot" ManipulationMode="TranslateX" Grid.ColumnSpan="2" HorizontalAlignment="Left" Background="{TemplateBinding PaneBackground}" Width="{Binding TemplateSettings.OpenPaneLength, RelativeSource={RelativeSource Mode=TemplatedParent}}">
+                        <Grid x:Name="PaneRoot" ManipulationMode="TranslateX,TranslateY" Grid.ColumnSpan="2" HorizontalAlignment="Left" Background="{TemplateBinding PaneBackground}" Width="{Binding TemplateSettings.OpenPaneLength, RelativeSource={RelativeSource Mode=TemplatedParent}}">
                             <Grid.Clip>
                                 <RectangleGeometry x:Name="PaneClipRectangle">
                                     <RectangleGeometry.Transform>
@@ -431,17 +431,21 @@
                             <Border Child="{TemplateBinding Pane}" />
                             <Rectangle x:Name="HCPaneBorder" Fill="{ThemeResource SystemControlForegroundTransparentBrush}" HorizontalAlignment="Right" Visibility="Collapsed" Width="1" x:DeferLoadStrategy="Lazy" />
                         </Grid>
+                        
+                        <!--a new layer here to handle all the gestures -->
                         <Grid x:Name="OverlayRoot" Grid.ColumnSpan="2">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="{Binding TemplateSettings.OpenPaneGridLength, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition />
                             </Grid.ColumnDefinitions>
-                            <Rectangle x:Name="PanArea" Fill="Transparent" ManipulationMode="TranslateX" Width="{Binding PanAreaThreshold, RelativeSource={RelativeSource Mode=TemplatedParent}}" Grid.Column="1">
+                            <!--the actual element for panning, manipulations happen here-->
+                            <Rectangle x:Name="PanArea" Fill="Transparent" ManipulationMode="TranslateX,TranslateY" Width="{Binding PanAreaThreshold, RelativeSource={RelativeSource Mode=TemplatedParent}}" Grid.Column="1">
                                 <Rectangle.RenderTransform>
                                     <CompositeTransform TranslateX="{Binding PanAreaInitialTranslateX, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
                                 </Rectangle.RenderTransform>
                             </Rectangle>
+                            <!--this is used to dismiss this swipeable pane-->
                             <Rectangle x:Name="DismissLayer" Fill="Transparent" Grid.Column="2" />
                         </Grid>
                     </Grid>
