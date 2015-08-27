@@ -366,8 +366,10 @@ namespace GestureDemo
             {
                 if (sender == _paneRoot)
                 {
-                    // if it's a flick, meaning the user wants to cancel the action, so we remove all the highlights
-                    if (e.Velocities.Linear.Y >= 2)
+                    // if it's a flick, meaning the user wants to cancel the action, so we remove all the highlights;
+                    // or it's intended to be a horizontal gesture, we also remove all the highlights
+                    if (Math.Abs(e.Velocities.Linear.Y) >= 2 ||
+                        Math.Abs(e.Cumulative.Translation.X) > Math.Abs(e.Cumulative.Translation.Y))
                     {
                         foreach (var item in _menuItems)
                         {
