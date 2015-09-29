@@ -79,6 +79,7 @@ namespace GestureDemo
                     _panArea.ManipulationStarted -= OnManipulationStarted;
                     _panArea.ManipulationDelta -= OnManipulationDelta;
                     _panArea.ManipulationCompleted -= OnManipulationCompleted;
+                    _panArea.Tapped -= OnDismissLayerTapped;
                 }
 
                 _panArea = value;
@@ -88,6 +89,7 @@ namespace GestureDemo
                     _panArea.ManipulationStarted += OnManipulationStarted;
                     _panArea.ManipulationDelta += OnManipulationDelta;
                     _panArea.ManipulationCompleted += OnManipulationCompleted;
+                    _panArea.Tapped += OnDismissLayerTapped;
                 }
             }
         }
