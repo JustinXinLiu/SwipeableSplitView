@@ -446,7 +446,7 @@
                                 </Rectangle.RenderTransform>
                             </Rectangle>
                             <!--this is used to dismiss this swipeable pane-->
-                            <Rectangle x:Name="DismissLayer" Fill="Transparent" Grid.Column="2" />
+                            <Rectangle x:Name="DismissLayer" Fill="Transparent" IsHitTestVisible="False" Grid.Column="2" />
                         </Grid>
                     </Grid>
                 </ControlTemplate>
