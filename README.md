@@ -1,7 +1,7 @@
 # SwipeableSplitView
 Trying to enable edge swiping on the native SplitView control in UWP.
 
-1. This SplitView project was initially created based on Koen's awesome UWP templates. (https://visualstudiogallery.msdn.microsoft.com/b3eb9b90-cc39-4b5c-bf94-497cba6e4f6f)
+1. This SplitView project was initially created based on Koen's awesome [UWP templates](https://visualstudiogallery.msdn.microsoft.com/b7076e96-d4ab-4150-b2c6-12730abd5666).
 2. Don't use IsPaneOpen, use IsSwipeablePaneOpen instead.
 3. At the moment the swipe only works when DisplayMode is Overlay.
 4. Currently only left edge is supported.
