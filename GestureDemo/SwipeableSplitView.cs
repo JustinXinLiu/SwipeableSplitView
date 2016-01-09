@@ -159,7 +159,7 @@ namespace GestureDemo
         }
 
         public static readonly DependencyProperty IsSwipeablePaneOpenProperty =
-            DependencyProperty.Register("IsSwipeablePaneOpen", typeof(bool), typeof(SwipeableSplitView), new PropertyMetadata(false, OnIsSwipeablePaneOpenChanged));
+            DependencyProperty.Register(nameof(IsSwipeablePaneOpen), typeof(bool), typeof(SwipeableSplitView), new PropertyMetadata(false, OnIsSwipeablePaneOpenChanged));
 
         static void OnIsSwipeablePaneOpenChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -194,7 +194,7 @@ namespace GestureDemo
         }
 
         public static readonly DependencyProperty PanAreaInitialTranslateXProperty =
-            DependencyProperty.Register("PanAreaInitialTranslateX", typeof(double), typeof(SwipeableSplitView), new PropertyMetadata(0d));
+            DependencyProperty.Register(nameof(PanAreaInitialTranslateX), typeof(double), typeof(SwipeableSplitView), new PropertyMetadata(0d));
 
         public double PanAreaThreshold
         {
@@ -203,7 +203,7 @@ namespace GestureDemo
         }
 
         public static readonly DependencyProperty PanAreaThresholdProperty =
-            DependencyProperty.Register("PanAreaThreshold", typeof(double), typeof(SwipeableSplitView), new PropertyMetadata(36d));
+            DependencyProperty.Register(nameof(PanAreaThreshold), typeof(double), typeof(SwipeableSplitView), new PropertyMetadata(36d));
 
 
         /// <summary>
@@ -218,7 +218,7 @@ namespace GestureDemo
         }
 
         public static readonly DependencyProperty IsPanSelectorEnabledProperty =
-            DependencyProperty.Register("IsPanSelectorEnabled", typeof(bool), typeof(SwipeableSplitView), new PropertyMetadata(true));
+            DependencyProperty.Register(nameof(IsPanSelectorEnabled), typeof(bool), typeof(SwipeableSplitView), new PropertyMetadata(true));
 
         #endregion
 
@@ -226,30 +226,15 @@ namespace GestureDemo
         {
             base.OnApplyTemplate();
 
-            PaneRoot = GetTemplateChild("PaneRoot") as Grid;
-            _overlayRoot = GetTemplateChild("OverlayRoot") as Grid;
-            PanArea = GetTemplateChild("PanArea") as Rectangle;
-            DismissLayer = GetTemplateChild("DismissLayer") as Rectangle;
+            PaneRoot = GetTemplateChild<Grid>("PaneRoot");
+            _overlayRoot = GetTemplateChild<Grid>("OverlayRoot");
+            PanArea = GetTemplateChild<Rectangle>("PanArea");
+            DismissLayer = GetTemplateChild<Rectangle>("DismissLayer");
+            
+            var rootGrid = _paneRoot.GetParent<Grid>();
 
-            if (PaneRoot == null || _overlayRoot == null || PanArea == null || DismissLayer == null)
-            {
-                throw new ArgumentException("Make sure you have copied the default style to Generic.xaml!!");
-            }
-
-            var rootGrid = _paneRoot.Parent as Grid;
-
-            if (rootGrid == null)
-            {
-                throw new ArgumentException("Make sure you have copied the default style to Generic.xaml!!");
-            }
-
-            OpenSwipeablePaneAnimation = rootGrid.Resources["OpenSwipeablePane"] as Storyboard;
-            CloseSwipeablePaneAnimation = rootGrid.Resources["CloseSwipeablePane"] as Storyboard;
-
-            if (OpenSwipeablePaneAnimation == null || CloseSwipeablePaneAnimation == null)
-            {
-                throw new ArgumentException("Make sure you have copied the default style to Generic.xaml!!");
-            }
+            OpenSwipeablePaneAnimation = rootGrid.GetStoryboard("OpenSwipeablePane");
+            CloseSwipeablePaneAnimation = rootGrid.GetStoryboard("CloseSwipeablePane");
 
             // initialization
             OnDisplayModeChanged(null, null);
@@ -291,13 +276,8 @@ namespace GestureDemo
 
         void OnManipulationStarted(object sender, ManipulationStartedRoutedEventArgs e)
         {
-            _panAreaTransform = PanArea.RenderTransform as CompositeTransform;
-            _paneRootTransform = PaneRoot.RenderTransform as CompositeTransform;
-
-            if (_panAreaTransform == null || _paneRootTransform == null)
-            {
-                throw new ArgumentException("Make sure you have copied the default style to Generic.xaml!!");
-            }
+            _panAreaTransform = PanArea.GetCompositeTransform();
+            _paneRootTransform = PaneRoot.GetCompositeTransform();
         }
 
         void OnManipulationDelta(object sender, ManipulationDeltaRoutedEventArgs e)
@@ -431,12 +411,7 @@ namespace GestureDemo
             if (this.IsPanSelectorEnabled)
             {
                 var border = (Border)this.PaneRoot.Children[0];
-                _menuHost = border.Child as Selector;
-
-                if (_menuHost == null)
-                {
-                    throw new ArgumentException("For the bottom panning to work, the Pane's Child needs to be of type Selector!!");
-                }
+                _menuHost = border.GetChild<Selector>("For the bottom panning to work, the Pane's Child needs to be of type Selector.");
 
                 foreach (var item in _menuHost.Items)
                 {
@@ -477,6 +452,23 @@ namespace GestureDemo
             {
                 IsSwipeablePaneOpen = false;
             }
+        }
+
+        T GetTemplateChild<T>(string name, string message = null) where T : DependencyObject
+        {
+            var child = GetTemplateChild(name) as T;
+
+            if (child == null)
+            {
+                if (message == null)
+                {
+                    message = $"{name} should not be null! Check the default Generic.xaml.";
+                }
+
+                throw new NullReferenceException(message);
+            }
+
+            return child;
         }
 
         #endregion
