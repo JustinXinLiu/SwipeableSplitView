@@ -35,7 +35,10 @@ namespace GestureDemo.Presentation
                 if (Set(ref this.selectedMenuItem, value)) {
                     OnPropertyChanged("SelectedPageType");
 
-                    // auto-close split view pane
+                    // This will handle most cases where the SplitView pane needs to close.
+                    // There are other special cases where we may need to manually close the SplitView Pane.
+                    // For example, selecting the same menu item will not set this property—therefore, we need
+                    // to manually close the Pane in that case.
                     this.IsSplitViewPaneOpen = false;
                 }
             }

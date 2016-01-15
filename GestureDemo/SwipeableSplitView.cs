@@ -316,64 +316,79 @@ namespace GestureDemo
 
         async void OnManipulationCompleted(object sender, ManipulationCompletedRoutedEventArgs e)
         {
-            var x = e.Velocities.Linear.X;
+            // First, determine if the swipe was horizontal or vertical. Horizontal swipes should open or
+            // close the SwipeablePane. A vertical swipe should manipulate the PanSelector.
+            var horizontalSwipe = Math.Abs(e.Cumulative.Translation.X) > Math.Abs(e.Cumulative.Translation.Y);
+            if (horizontalSwipe)
+            {
+                var horizontalVelocity = e.Velocities.Linear.X;
 
-            // ignore a little bit velocity (+/-0.1)
-            if (x <= -0.1)
-            {
-                CloseSwipeablePane();
-            }
-            else if (x > -0.1 && x < 0.1)
-            {
-                if (Math.Abs(_panAreaTransform.TranslateX) > Math.Abs(PanAreaInitialTranslateX) / 2)
+                // Ignore a little bit velocity (+/-0.1).
+                if (horizontalVelocity <= -0.1)
                 {
                     CloseSwipeablePane();
+                }
+                else if (horizontalVelocity > -0.1 && horizontalVelocity < 0.1)
+                {
+                    if (Math.Abs(_panAreaTransform.TranslateX) > Math.Abs(PanAreaInitialTranslateX) / 2)
+                    {
+                        CloseSwipeablePane();
+                    }
+                    else
+                    {
+                        OpenSwipeablePane();
+                    }
                 }
                 else
                 {
                     OpenSwipeablePane();
                 }
+
+                // In case the ManipulationDelta highlighted a menuItem, remove the highlight.
+                var itemContainer = _menuItems[_toBeSelectedIndex];
+                VisualStateManager.GoToState(itemContainer, "Normal", true);
             }
             else
             {
-                OpenSwipeablePane();
-            }
-
-            if (this.IsPanSelectorEnabled)
-            {
-                if (sender == _paneRoot)
+                if (this.IsPanSelectorEnabled)
                 {
-                    // if it's a flick, meaning the user wants to cancel the action, so we remove all the highlights;
-                    // or it's intended to be a horizontal gesture, we also remove all the highlights
-                    if (Math.Abs(e.Velocities.Linear.Y) >= 2 ||
-                        Math.Abs(e.Cumulative.Translation.X) > Math.Abs(e.Cumulative.Translation.Y))
+                    if (sender == _paneRoot)
                     {
-                        foreach (var item in _menuItems)
+                        // If it's a flick, meaning the user wants to cancel the action, so we remove all the highlights;
+                        // or it's intended to be a horizontal gesture, we also remove all the highlights.
+                        if (Math.Abs(e.Velocities.Linear.Y) >= 2)
                         {
-                            VisualStateManager.GoToState(item, "Normal", true);
+                            foreach (var item in _menuItems)
+                            {
+                                VisualStateManager.GoToState(item, "Normal", true);
+                            }
+
+                            return;
                         }
 
-                        return;
-                    }
+                        // Un-highlight everything first.
+                        foreach (var item in _menuItems)
+                        {
+                            VisualStateManager.GoToState(item, "Unselected", true);
+                        }
 
-                    // un-highlight everything first
-                    foreach (var item in _menuItems)
+                        // Highlight the item that's going to be selected.
+                        var itemContainer = _menuItems[_toBeSelectedIndex];
+                        VisualStateManager.GoToState(itemContainer, "Selected", true);
+
+                        // Do a selection after a short delay to allow visual effect takes place first.
+                        await Task.Delay(250);
+                        _menuHost.SelectedIndex = _toBeSelectedIndex;
+
+                        // Make sure the Pane is closed. This must be called in case the user
+                        // selects the previously selected Menu item.
+                        CloseSwipeablePane();
+                    }
+                    else
                     {
-                        VisualStateManager.GoToState(item, "Unselected", true);
+                        // Recalculate the starting distance.
+                        _startingDistance = _distancePerItem * _menuHost.SelectedIndex;
                     }
-
-                    // highlight the item that's going to be selected
-                    var itemContainer = _menuItems[_toBeSelectedIndex];
-                    VisualStateManager.GoToState(itemContainer, "Selected", true);
-
-                    // do a selection after a short delay to allow visual effect takes place first
-                    await Task.Delay(250);
-                    _menuHost.SelectedIndex = _toBeSelectedIndex;
-                }
-                else
-                {
-                    // recalculate the starting distance
-                    _startingDistance = _distancePerItem * _menuHost.SelectedIndex;
                 }
             }
         }

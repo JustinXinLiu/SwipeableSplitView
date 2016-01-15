@@ -52,5 +52,13 @@ namespace GestureDemo
                 return this.Frame;
             }
         }
+
+        private void OnLayoutRootPointerReleased(object sender, PointerRoutedEventArgs e)
+        {
+            // When the currently selected menu item is selected again, we should close the SplitView pane.
+            // Normally, the Pane is closed in the ViewModel.SelectedMenuItem setter but because
+            // the SelectedMenuItem is selected again, the setter is not called.
+            this.SplitView.IsSwipeablePaneOpen = false;
+        }
     }
 }
