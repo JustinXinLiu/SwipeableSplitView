@@ -1,24 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Windows.UI.Xaml.Controls;
 
 namespace GestureDemo.Presentation
 {
     public class MenuItem : NotifyPropertyChanged
     {
-        private string icon;
         private string title;
         private Type pageType;
-
-
-        public string Icon
-        {
-            get { return this.icon; }
-            set { Set(ref this.icon, value); }
-        }
 
         public string Title
         {
@@ -30,6 +18,16 @@ namespace GestureDemo.Presentation
         {
             get { return this.pageType; }
             set { Set(ref this.pageType, value); }
+        }
+
+        public Symbol IconPage { get; set; }
+
+        public char SymbolAsChar
+        {
+            get
+            {
+                return (char)this.IconPage;
+            }
         }
     }
 }
