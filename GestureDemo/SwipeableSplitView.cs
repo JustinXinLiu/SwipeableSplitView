@@ -394,11 +394,13 @@ namespace GestureDemo
         void OnOpenSwipeablePaneCompleted(object sender, object e)
         {
             this.DismissLayer.IsHitTestVisible = true;
+            this.DismissLayer.Visibility = Visibility.Visible;
         }
 
         void OnCloseSwipeablePaneCompleted(object sender, object e)
         {
             this.DismissLayer.IsHitTestVisible = false;
+            this.DismissLayer.Visibility = Visibility.Collapsed;
         }
 
         #endregion
