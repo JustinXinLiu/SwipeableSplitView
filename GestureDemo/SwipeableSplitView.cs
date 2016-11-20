@@ -226,15 +226,45 @@ namespace GestureDemo
         {
             base.OnApplyTemplate();
 
+            Windows.UI.Xaml.Data.Binding paneTransformBinding = new Windows.UI.Xaml.Data.Binding();
+            if (this.PanePlacement == SplitViewPanePlacement.Left)
+                paneTransformBinding.ElementName = "PanAreaLeft";
+            else
+                paneTransformBinding.ElementName = "PanAreaRight";
+            paneTransformBinding.Source = RenderTransform;
+            paneTransformBinding.Path = new PropertyPath("TranslateX");
+            paneTransformBinding.UpdateSourceTrigger = Windows.UI.Xaml.Data.UpdateSourceTrigger.PropertyChanged;
+            Windows.UI.Xaml.Data.BindingOperations.SetBinding(GetTemplateChild<CompositeTransform>("PaneTransform"), CompositeTransform.TranslateXProperty, paneTransformBinding);
+
             PaneRoot = GetTemplateChild<Grid>("PaneRoot");
-            _overlayRoot = GetTemplateChild<Grid>("OverlayRoot");
-            PanArea = GetTemplateChild<Rectangle>("PanArea");
-            DismissLayer = GetTemplateChild<Rectangle>("DismissLayer");
-            
+            if (this.PanePlacement == SplitViewPanePlacement.Left)
+            {
+                _overlayRoot = GetTemplateChild<Grid>("OverlayRootLeft");
+                PanArea = GetTemplateChild<Rectangle>("PanAreaLeft");
+                DismissLayer = GetTemplateChild<Rectangle>("DismissLayerLeft");
+                GetTemplateChild<Grid>("OverlayRootRight").Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                _overlayRoot = GetTemplateChild<Grid>("OverlayRootRight");
+                PanArea = GetTemplateChild<Rectangle>("PanAreaRight");
+                DismissLayer = GetTemplateChild<Rectangle>("DismissLayerRight");
+                GetTemplateChild<Grid>("OverlayRootLeft").Visibility = Visibility.Collapsed;
+            }
+
+
             var rootGrid = _paneRoot.GetParent<Grid>();
 
-            OpenSwipeablePaneAnimation = rootGrid.GetStoryboard("OpenSwipeablePane");
-            CloseSwipeablePaneAnimation = rootGrid.GetStoryboard("CloseSwipeablePane");
+            if (this.PanePlacement == SplitViewPanePlacement.Left)
+            {
+                OpenSwipeablePaneAnimation = rootGrid.GetStoryboard("OpenSwipeablePaneLeft");
+                CloseSwipeablePaneAnimation = rootGrid.GetStoryboard("CloseSwipeablePaneLeft");
+            }
+            else
+            {
+                OpenSwipeablePaneAnimation = rootGrid.GetStoryboard("OpenSwipeablePaneRight");
+                CloseSwipeablePaneAnimation = rootGrid.GetStoryboard("CloseSwipeablePaneRight");
+            }
 
             // initialization
             OnDisplayModeChanged(null, null);
@@ -262,7 +292,16 @@ namespace GestureDemo
                     break;
 
                 case SplitViewDisplayMode.Overlay:
-                    PanAreaInitialTranslateX = OpenPaneLength * -1;
+                    if (this.PanePlacement == SplitViewPanePlacement.Left)
+                    {
+                        PanAreaInitialTranslateX = OpenPaneLength * -1;
+                        _paneRoot.HorizontalAlignment = HorizontalAlignment.Left;
+                    }
+                    else
+                    {
+                        PanAreaInitialTranslateX = OpenPaneLength;
+                        _paneRoot.HorizontalAlignment = HorizontalAlignment.Right;
+                    }
                     _overlayRoot.Visibility = Visibility.Visible;
                     break;
             }
@@ -285,7 +324,14 @@ namespace GestureDemo
             var x = _panAreaTransform.TranslateX + e.Delta.Translation.X;
 
             // keep the pan within the bountry
-            if (x < PanAreaInitialTranslateX || x > 0) return;
+            if (this.PanePlacement == SplitViewPanePlacement.Left)
+            {
+                if (x < PanAreaInitialTranslateX || x > 0) return;
+            }
+            else
+            {
+                if (x > PanAreaInitialTranslateX || x < 0) return;
+            }
 
             // while we are panning the PanArea on X axis, let's sync the PaneRoot's position X too
             _paneRootTransform.TranslateX = _panAreaTransform.TranslateX = x;
@@ -319,15 +365,22 @@ namespace GestureDemo
             var x = e.Velocities.Linear.X;
 
             // ignore a little bit velocity (+/-0.1)
-            if (x <= -0.1)
+            if (this.PanePlacement == SplitViewPanePlacement.Left)
             {
-                CloseSwipeablePane();
-            }
-            else if (x > -0.1 && x < 0.1)
-            {
-                if (Math.Abs(_panAreaTransform.TranslateX) > Math.Abs(PanAreaInitialTranslateX) / 2)
+                if (x <= -0.1)
                 {
                     CloseSwipeablePane();
+                }
+                else if (x > -0.1 && x < 0.1)
+                {
+                    if (Math.Abs(_panAreaTransform.TranslateX) > Math.Abs(PanAreaInitialTranslateX) / 2)
+                    {
+                        CloseSwipeablePane();
+                    }
+                    else
+                    {
+                        OpenSwipeablePane();
+                    }
                 }
                 else
                 {
@@ -336,7 +389,25 @@ namespace GestureDemo
             }
             else
             {
-                OpenSwipeablePane();
+                if (x <= -0.1)
+                {
+                    OpenSwipeablePane();
+                }
+                else if (x > -0.1 && x < 0.1)
+                {
+                    if (Math.Abs(_panAreaTransform.TranslateX) > Math.Abs(PanAreaInitialTranslateX) / 2)
+                    {
+                        CloseSwipeablePane();
+                    }
+                    else
+                    {
+                        OpenSwipeablePane();
+                    }
+                }
+                else
+                {
+                    CloseSwipeablePane();
+                }
             }
 
             if (this.IsPanSelectorEnabled)

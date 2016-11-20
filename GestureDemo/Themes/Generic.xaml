@@ -11,8 +11,8 @@
                 <ControlTemplate TargetType="local:SwipeableSplitView">
                     <Grid Background="{TemplateBinding Background}">
                         <Grid.Resources>
-                            <Storyboard x:Name="CloseSwipeablePane">
-                                <DoubleAnimation Duration="0:0:0.2" To="{Binding PanAreaInitialTranslateX, RelativeSource={RelativeSource Mode=TemplatedParent}}" Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.TranslateX)" Storyboard.TargetName="PanArea" d:IsOptimized="True">
+                            <Storyboard x:Name="CloseSwipeablePaneLeft">
+                                <DoubleAnimation Duration="0:0:0.2" To="{Binding PanAreaInitialTranslateX, RelativeSource={RelativeSource Mode=TemplatedParent}}" Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.TranslateX)" Storyboard.TargetName="PanAreaLeft" d:IsOptimized="True">
                                     <DoubleAnimation.EasingFunction>
                                         <ExponentialEase EasingMode="EaseIn" />
                                     </DoubleAnimation.EasingFunction>
@@ -23,8 +23,8 @@
                                     </DoubleAnimation.EasingFunction>
                                 </DoubleAnimation>
                             </Storyboard>
-                            <Storyboard x:Name="OpenSwipeablePane">
-                                <DoubleAnimation Duration="0:0:0.2" To="0" Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.TranslateX)" Storyboard.TargetName="PanArea" d:IsOptimized="True">
+                            <Storyboard x:Name="OpenSwipeablePaneLeft">
+                                <DoubleAnimation Duration="0:0:0.2" To="0" Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.TranslateX)" Storyboard.TargetName="PanAreaLeft" d:IsOptimized="True">
                                     <DoubleAnimation.EasingFunction>
                                         <ExponentialEase EasingMode="EaseOut" />
                                     </DoubleAnimation.EasingFunction>
@@ -36,6 +36,36 @@
                                 </DoubleAnimation>
                             </Storyboard>
 
+                            <Storyboard x:Name="CloseSwipeablePaneRight">
+                                <DoubleAnimation Duration="0:0:0.2" To="{Binding PanAreaInitialTranslateX, RelativeSource={RelativeSource Mode=TemplatedParent}}" Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.TranslateX)" Storyboard.TargetName="PanAreaRight" d:IsOptimized="True">
+                                    <DoubleAnimation.EasingFunction>
+                                        <ExponentialEase EasingMode="EaseIn" />
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                                <DoubleAnimation Duration="0:0:0.2" To="{Binding PanAreaInitialTranslateX, RelativeSource={RelativeSource Mode=TemplatedParent}}" Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.TranslateX)" Storyboard.TargetName="PaneRoot" d:IsOptimized="True">
+                                    <DoubleAnimation.EasingFunction>
+                                        <ExponentialEase EasingMode="EaseIn" />
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                            <Storyboard x:Name="OpenSwipeablePaneRight">
+                                <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="HorizontalAlignment" Storyboard.TargetName="PaneRoot">
+                                    <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="Right" />
+                                </ObjectAnimationUsingKeyFrames>
+                                <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="HorizontalAlignment" Storyboard.TargetName="PanAreaRight">
+                                    <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="Right" />
+                                </ObjectAnimationUsingKeyFrames>
+                                <DoubleAnimation Duration="0:0:0.2" To="0" Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.TranslateX)" Storyboard.TargetName="PanAreaRight" d:IsOptimized="True">
+                                    <DoubleAnimation.EasingFunction>
+                                        <ExponentialEase EasingMode="EaseOut" />
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                                <DoubleAnimation Duration="0:0:0.2" To="0" Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.TranslateX)" Storyboard.TargetName="PaneRoot" d:IsOptimized="True">
+                                    <DoubleAnimation.EasingFunction>
+                                        <ExponentialEase EasingMode="EaseOut" />
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
                         </Grid.Resources>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition x:Name="ColumnDefinition1" Width="{Binding TemplateSettings.OpenPaneGridLength, FallbackValue=0, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
@@ -426,27 +456,44 @@
                                 </RectangleGeometry>
                             </Grid.Clip>
                             <Grid.RenderTransform>
-                                <CompositeTransform x:Name="PaneTransform" TranslateX="{Binding RenderTransform.TranslateX, ElementName=PanArea}" />
+                                <CompositeTransform x:Name="PaneTransform"/>
                             </Grid.RenderTransform>
                             <Border Child="{TemplateBinding Pane}" />
                             <Rectangle x:Name="HCPaneBorder" Fill="{ThemeResource SystemControlForegroundTransparentBrush}" HorizontalAlignment="Right" Visibility="Collapsed" Width="1" x:DeferLoadStrategy="Lazy" />
                         </Grid>
-                        
+
                         <!--a new layer here to handle all the gestures -->
-                        <Grid x:Name="OverlayRoot" Grid.ColumnSpan="2">
+                        <Grid x:Name="OverlayRootLeft" Grid.ColumnSpan="2">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="{Binding TemplateSettings.OpenPaneGridLength, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition />
                             </Grid.ColumnDefinitions>
                             <!--the actual element for panning, manipulations happen here-->
-                            <Rectangle x:Name="PanArea" Fill="Transparent" ManipulationMode="TranslateX,TranslateY" Width="{Binding PanAreaThreshold, RelativeSource={RelativeSource Mode=TemplatedParent}}" Grid.Column="1">
+                            <Rectangle x:Name="PanAreaLeft" Fill="Transparent" ManipulationMode="TranslateX,TranslateY" Width="{Binding PanAreaThreshold, RelativeSource={RelativeSource Mode=TemplatedParent}}" Grid.Column="1">
                                 <Rectangle.RenderTransform>
                                     <CompositeTransform TranslateX="{Binding PanAreaInitialTranslateX, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
                                 </Rectangle.RenderTransform>
                             </Rectangle>
                             <!--this is used to dismiss this swipeable pane-->
-                            <Rectangle x:Name="DismissLayer" Fill="Transparent" IsHitTestVisible="False" Grid.Column="2" />
+                            <Rectangle x:Name="DismissLayerLeft" Fill="Transparent" IsHitTestVisible="False" Grid.Column="2" />
+                        </Grid>
+
+                        <!--a new layer here to handle all the gestures -->
+                        <Grid x:Name="OverlayRootRight" Grid.ColumnSpan="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="{Binding TemplateSettings.OpenPaneGridLength, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
+                            </Grid.ColumnDefinitions>
+                            <!--the actual element for panning, manipulations happen here-->
+                            <Rectangle x:Name="PanAreaRight" Fill="Transparent" ManipulationMode="TranslateX,TranslateY" Width="{Binding PanAreaThreshold, RelativeSource={RelativeSource Mode=TemplatedParent}}" Grid.Column="1">
+                                <Rectangle.RenderTransform>
+                                    <CompositeTransform TranslateX="{Binding PanAreaInitialTranslateX, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
+                                </Rectangle.RenderTransform>
+                            </Rectangle>
+                            <!--this is used to dismiss this swipeable pane-->
+                            <Rectangle x:Name="DismissLayerRight" Fill="Transparent" IsHitTestVisible="False" Grid.Column="0" />
                         </Grid>
                     </Grid>
                 </ControlTemplate>
